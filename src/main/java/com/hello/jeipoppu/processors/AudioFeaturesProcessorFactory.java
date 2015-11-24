@@ -1,13 +1,8 @@
 package com.hello.jeipoppu.processors;
 
-import com.amazonaws.services.dynamodbv2.AmazonDynamoDB;
 import com.amazonaws.services.kinesis.clientlibrary.interfaces.IRecordProcessor;
 import com.amazonaws.services.kinesis.clientlibrary.interfaces.IRecordProcessorFactory;
 import com.codahale.metrics.MetricRegistry;
-import com.hello.jeipoppu.utils.ActiveDevicesTracker;
-import com.hello.jeipoppu.utils.CheckpointTracker;
-
-import redis.clients.jedis.JedisPool;
 
 /**
  * Created by jnorgan on 6/29/15.
