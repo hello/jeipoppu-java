@@ -1,0 +1,6 @@
+.idea
+target
+*.iml
+*.dev.yml
+*.releaseBackup
+dependency-reduced-pom.xml
