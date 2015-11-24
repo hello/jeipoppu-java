@@ -26,7 +26,7 @@ public class JeiPoppu extends Application<JeiPoppuConfiguration>
 
     @Override
     public String getName() {
-        return "suripu-analytics";
+        return "jeipoppu";
     }
 
     @Override
