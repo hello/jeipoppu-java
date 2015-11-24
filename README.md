@@ -1,2 +1,2 @@
-# suripu-analytics
-These analytics workers are meant to allow faster metrics creation and experimentation without affecting production. Care should be taken to ensure these do not interfere with Prod. 
+# jeipoppu-java
+This worker processes the audio_features Kinesis stream and classifies the features before writing to a TBD destination. 
