@@ -6,15 +6,22 @@ import com.amazonaws.services.kinesis.clientlibrary.interfaces.IRecordProcessor;
 import com.amazonaws.services.kinesis.clientlibrary.interfaces.IRecordProcessorCheckpointer;
 import com.amazonaws.services.kinesis.clientlibrary.types.ShutdownReason;
 import com.amazonaws.services.kinesis.model.Record;
+import com.amazonaws.util.StringUtils;
 import com.codahale.metrics.Meter;
 import com.codahale.metrics.MetricRegistry;
+
+import com.google.common.base.Joiner;
+import com.google.common.collect.Lists;
 import com.google.protobuf.InvalidProtocolBufferException;
 
 import com.hello.suripu.api.audio.MatrixProtos;
+import com.hello.jeipoppu.classifiers.BasicClassifier;
+import com.hello.jeipoppu.models.Classification;
 
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+import java.util.HashSet;
 import java.util.List;
 
 import static com.codahale.metrics.MetricRegistry.name;
@@ -55,14 +62,15 @@ public class AudioFeaturesProcessor implements IRecordProcessor {
                 continue;
             }
 
+          final BasicClassifier classifier = new BasicClassifier(matrixClientMessage);
 
-          //Perform classification here
-          final MatrixProtos.Matrix matrixPayload = matrixClientMessage.getMatrixPayload();
-          if (!(matrixClientMessage.getMatrixListCount() > 0)) {
+          if (classifier.isEmpty()) {
             continue;
           }
-          final MatrixProtos.Matrix matrix = matrixClientMessage.getMatrixList(0);
-          LOGGER.debug("Matrix processed for: {} with {}", matrixClientMessage.getDeviceId(), matrix.getId());
+
+          final Classification classification = classifier.run();
+
+          LOGGER.debug("Classification: ", classification.toString());
         }
 
 
