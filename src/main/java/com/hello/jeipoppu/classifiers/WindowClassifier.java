@@ -20,18 +20,23 @@ import java.util.LinkedList;
 import java.util.List;
 import java.util.Map;
 
-public class BasicClassifier implements Classifier {
+public class WindowClassifier implements Classifier {
 
-  private final static org.slf4j.Logger LOGGER = org.slf4j.LoggerFactory.getLogger(BasicClassifier.class);
-  private final static String MODEL_FILENAME = "/Users/jnorgan/HelloCode/scripts/data/audio_features/model_stddev.csv";
+  private final static org.slf4j.Logger LOGGER = org.slf4j.LoggerFactory.getLogger(WindowClassifier.class);
 
   private MatrixClientMessage message;
   private Algorithm algorithm;
-  public List<Double[]> features;
+  public List<Double[]> featureVectors;
   public Double[] processedFeatures;
+  private Map<String, List<Double>> models;
+  public List<Double[]> processedWindows;
+  private Integer windowSize;
 
-  public BasicClassifier(final Algorithm algorithm) {
+  public WindowClassifier(final Algorithm algorithm, final Integer windowSize) {
     this.algorithm = algorithm;
+    models = loadModels();
+    processedWindows = Lists.newArrayList();
+    this.windowSize = windowSize;
   }
 
   public List<Classification> run(final MatrixClientMessage message) {
@@ -46,23 +51,44 @@ public class BasicClassifier implements Classifier {
       }
     }
 
-    features = getFeaturesList(data);
-    if (features.isEmpty()) {
+    featureVectors = getFeatureVectorsList(data);
+
+    if (featureVectors.isEmpty()) {
       return Collections.EMPTY_LIST;
     }
 
-    processedFeatures = algorithm.compute(features);
+    List<Classification> classifications = Lists.newArrayList();
+    for (int x=0; x < featureVectors.size() - (windowSize - 1); x++) {
+      List<Double[]> windowVectors = Lists.newArrayList();
+      for(int y =0; y < windowSize; y++) {
+        windowVectors.add(featureVectors.get(x + y));
+      }
+      final Double[] processedWindow = algorithm.compute(windowVectors);
+      processedWindows.add(processedWindow);
+      final Classification windowClassification = determineClassification(processedWindow);
+      classifications.add(windowClassification);
+    }
 
-    //Load models
-    final Map<String, List<Double>> models = loadModels();
+    //roll through feature vectors and determine classification
+    processedFeatures = algorithm.computeAggregate(processedWindows);
 
+    final Classification featureClassification = determineClassification(processedFeatures);
+
+    return classifications;
+  }
+
+  public Double[] getProcessedFeatures() {
+    return processedFeatures;
+  }
+
+  public Classification determineClassification(final Double[] features) {
     //Compare vector to models to determine classification
     Double lowestDistance = 3000.0;
     String nearestModel = "";
     Map<String, Double> modelDistances = Maps.newHashMap();
     for (Map.Entry<String, List<Double>> model : models.entrySet()) {
       final String modelName = model.getKey();
-      final Double distance = getDistance(processedFeatures, model.getValue());
+      final Double distance = getDistance(features, model.getValue());
       modelDistances.put(modelName, distance);
       if (distance < lowestDistance) {
         lowestDistance = distance;
@@ -71,27 +97,26 @@ public class BasicClassifier implements Classifier {
       //LOGGER.debug("Model: {} ; Distance: {}", modelName, distance);
     }
     modelDistances = sortByValue(modelDistances);
-    LOGGER.debug("Sorted Models: {}", modelDistances.toString());
+    //LOGGER.debug("Sorted Models: {}", modelDistances.toString());
     //LOGGER.debug("Matrix processed for: {} with {} : {}", message.getDeviceId(), message.getUnixTime(), featureVectors.size());
-    //LOGGER.debug("{}", toOctaveMatrixString(featureVectors));
     //LOGGER.debug("Processed featureVectors: {} via {}", processedFeatures, algorithm.getClass().getName());
 
     String selectedModel = modelDistances.keySet().toArray()[0].toString();
     String secondModel = modelDistances.keySet().toArray()[1].toString();
 
     Double modelDiff = Math.abs(modelDistances.get(selectedModel) - modelDistances.get(secondModel));
-    if (modelDiff < 0.2) {
-      LOGGER.debug("{} MAYBE {}", selectedModel, secondModel);
+    if (modelDiff < 0.2 && (selectedModel.contains("Snor") && secondModel.contains("Snor"))) {
+      //LOGGER.debug("{} MAYBE {}", selectedModel, secondModel);
+      return new Classification("Uncertain", 0.0f);
     } else {
-      LOGGER.debug("{} FAIRLY CERTAIN", selectedModel);
+      //LOGGER.debug("{} FAIRLY CERTAIN", selectedModel);
     }
 
-    final Classification classification = new Classification(selectedModel, modelDistances.get(selectedModel));
-    return Lists.newArrayList(classification);
-  }
+    if(selectedModel.contains("Snor")){
+      return new Classification("Snoring", modelDistances.get(selectedModel));
+    }
 
-  public Double[] getProcessedFeatures() {
-    return processedFeatures;
+    return new Classification(selectedModel, modelDistances.get(selectedModel));
   }
 
   public static <K, V extends Comparable<? super V>> Map<K, V>
@@ -150,7 +175,7 @@ public class BasicClassifier implements Classifier {
   }
 
 
-  private List<Double[]> getFeaturesList(List<Integer> data) {
+  private List<Double[]> getFeatureVectorsList(List<Integer> data) {
 
     if(message.getMatrixListCount() < 1) {
       return Collections.emptyList();

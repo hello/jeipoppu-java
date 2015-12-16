@@ -1,13 +1,16 @@
 package com.hello.jeipoppu;
 
+import com.hello.jeipoppu.commands.AudioFeaturesCommand;
+import com.hello.jeipoppu.commands.TrainAudioFeaturesCommand;
 import com.hello.jeipoppu.configuration.JeiPoppuConfiguration;
-import com.hello.jeipoppu.processors.AudioFeaturesCommand;
-import io.dropwizard.Application;
-import io.dropwizard.setup.Bootstrap;
-import io.dropwizard.setup.Environment;
+
 import org.joda.time.DateTimeZone;
 
 import java.util.TimeZone;
+
+import io.dropwizard.Application;
+import io.dropwizard.setup.Bootstrap;
+import io.dropwizard.setup.Environment;
 
 /**
  * A dropwizard application that essentially mimics the same/similar structure as the
@@ -31,7 +34,8 @@ public class JeiPoppu extends Application<JeiPoppuConfiguration>
 
     @Override
     public void initialize(Bootstrap<JeiPoppuConfiguration> bootstrap) {
-        bootstrap.addCommand(new AudioFeaturesCommand("audio_features", "Analyzing incoming audio features."));
+      bootstrap.addCommand(new AudioFeaturesCommand("audio_features", "Analyzing incoming audio featureVectors."));
+      bootstrap.addCommand(new TrainAudioFeaturesCommand("train_features", "Train a model on test set of audio featureVectors."));
     }
 
     @Override
