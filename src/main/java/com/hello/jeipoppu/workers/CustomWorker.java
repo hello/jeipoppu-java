@@ -19,6 +19,11 @@ import java.io.ObjectOutputStream;
 import java.nio.ByteBuffer;
 import java.util.List;
 
+/**
+ * This custom worker loads in a number of locally-stored serialized protobufs, stuffs them into
+ * a kinesis Record object and feeds them to a record processor of some sort. This is useful for
+ * creating training / validation data sets.
+ */
 public class CustomWorker implements Runnable {
 
   private static final Log LOG = LogFactory.getLog(CustomWorker.class);
@@ -125,7 +130,7 @@ public class CustomWorker implements Runnable {
 //              );
 
           for (final String featureSet : featureSets) {
-            //LOG.debug(featureSet);
+            LOG.debug(featureSet);
 
             final String fileName = "/Users/jnorgan/HelloCode/scripts/data/audio_features/" + featureSet;
 

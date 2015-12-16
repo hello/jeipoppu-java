@@ -11,4 +11,5 @@ public interface Classifier {
   public List<Classification> run(final MatrixProtos.MatrixClientMessage message);
   public Algorithm getAlgorithm();
   Double[] getProcessedFeatures();
+  Integer getFeatureCount();
 }

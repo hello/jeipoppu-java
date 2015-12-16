@@ -27,6 +27,7 @@ import java.io.IOException;
 import java.io.ObjectOutputStream;
 import java.text.SimpleDateFormat;
 import java.util.Date;
+import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.TimeZone;
@@ -74,41 +75,64 @@ public class AudioFeaturesProcessor implements IRecordProcessor {
                 continue;
             }
 
-          final WindowClassifier classifier = new WindowClassifier(new StdDevAlgorithm("model_window_stddev"), 32);
+          final WindowClassifier classifier = new WindowClassifier(new StdDevAlgorithm(), 32);
           //final BasicClassifier classifier = new BasicClassifier(new StdDevAlgorithm("model_stddev"));
 
 //          if (classifier.isEmpty()) {
 //            continue;
 //          }
-//matrixClientMessage.getDeviceId().equals("89BE44968F02BCB0") ||
-          //774BDC5C040473F9
+
+// Home unit: 89BE44968F02BCB0
+// CANARY 8:  774BDC5C040473F9
 
           //LOGGER.debug(matrixClientMessage.getDeviceId());
-          final long unixSeconds = matrixClientMessage.getUnixTime() - 313;
+          //final long unixSeconds = matrixClientMessage.getUnixTime() - 313; //Realignment for Test Data set
+          final long unixSeconds = matrixClientMessage.getUnixTime(); //Realignment for Test Data set
           final Date date = new Date(unixSeconds*1000L);
           final SimpleDateFormat sdf = new SimpleDateFormat("yyyy-MM-dd HH:mm:ss z");
-          sdf.setTimeZone(TimeZone.getTimeZone("GMT-8"));
+          sdf.setTimeZone(TimeZone.getTimeZone("UTC"));
           String formattedDate = sdf.format(date);
 
-          if (matrixClientMessage.getDeviceId().equals("774BDC5C040473F9")) {
-            System.out.print(formattedDate + " ");
-             nonEmptyRecords.add(matrixClientMessage);
+//          if (!matrixClientMessage.getDeviceId().equals("774BDC5C040473F9")) {
+//            continue;
+//          }
 
-            final List<Classification> classifications = classifier.run(matrixClientMessage);
-            //matrixBuilder.append(classifier.toOctaveMatrixString(classifier.featureVectors));
+           nonEmptyRecords.add(matrixClientMessage);
 
-            Map<String, Integer> classCounts = Maps.newHashMap();
-            for(final Classification classification : classifications) {
-              if (!classCounts.containsKey(classification.name)) {
-                classCounts.put(classification.name, 1);
-              } else {
-                classCounts.put(classification.name, classCounts.get(classification.name) + 1);
-              }
+          final List<Classification> classifications = classifier.run(matrixClientMessage);
+          //matrixBuilder.append(classifier.toOctaveMatrixString(classifier.featureVectors));
+
+          LinkedHashMap<String, Integer> classCounts = Maps.newLinkedHashMap();
+          for(final Classification classification : classifications) {
+            if (!classCounts.containsKey(classification.name)) {
+              classCounts.put(classification.name, 1);
+            } else {
+              classCounts.put(classification.name, classCounts.get(classification.name) + 1);
             }
-            classCounts = WindowClassifier.sortByValue(classCounts);
-            //LOGGER.debug("Classification: {}", classCounts.toString());
-            System.out.println(classCounts.toString());
           }
+          classCounts = WindowClassifier.sortByValue(classCounts);
+
+          if (classCounts.size() < 1) {
+            continue;
+          }
+          //LOGGER.debug("Classification: {}", classCounts.toString());
+
+          final String deviceId = matrixClientMessage.getDeviceId();
+          final Integer featureCount = classifier.getFeatureCount();
+
+          final String winningClassification = Lists.newArrayList(classCounts.keySet()).get(classCounts.size()-1);
+          final Integer winningValue = Lists.newArrayList(classCounts.values()).get(classCounts.size()-1);
+          //Basically, what percentage of the total feature vectors for this upload where classified as the winner
+          final Float winnerPercentage = (float)winningValue / (float)featureCount;
+
+          //System.out.println(classCounts.toString());
+
+          System.out.print(deviceId + ", ");
+          System.out.print(formattedDate + ", ");
+          System.out.print(winningClassification + ", ");
+          System.out.print(winningValue + ", ");
+          System.out.print(featureCount.toString() + ", ");
+          System.out.printf("%.3f\n", winnerPercentage);
 
         }
 

@@ -2,6 +2,7 @@ package com.hello.jeipoppu.algorithms;
 
 
 import java.util.List;
+import java.util.Map;
 
 public interface Algorithm {
 
@@ -9,5 +10,5 @@ public interface Algorithm {
 
   public Double[] computeAggregate(final List<Double[]> values);
 
-  public String getModelName();
+  Map<String, Double[]> getModels ();
 }

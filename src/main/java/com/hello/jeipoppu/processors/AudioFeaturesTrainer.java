@@ -11,7 +11,6 @@ import com.amazonaws.services.kinesis.clientlibrary.types.ShutdownReason;
 import com.amazonaws.services.kinesis.model.Record;
 import com.codahale.metrics.MetricRegistry;
 import com.hello.jeipoppu.algorithms.StdDevAlgorithm;
-import com.hello.jeipoppu.classifiers.BasicClassifier;
 import com.hello.jeipoppu.classifiers.Classifier;
 import com.hello.jeipoppu.classifiers.WindowClassifier;
 import com.hello.jeipoppu.models.Classification;
@@ -24,6 +23,7 @@ import org.slf4j.LoggerFactory;
 import java.io.FileInputStream;
 import java.io.IOException;
 import java.io.ObjectOutputStream;
+import java.util.Arrays;
 import java.util.List;
 
 public class AudioFeaturesTrainer implements IRecordProcessor {
@@ -37,7 +37,7 @@ public class AudioFeaturesTrainer implements IRecordProcessor {
 
 
     public AudioFeaturesTrainer(final MetricRegistry metricRegistry){
-      classifier = new WindowClassifier(new StdDevAlgorithm("model_window_stddev"), 3);
+      classifier = new WindowClassifier(new StdDevAlgorithm(), 32);
       listOfProcessed = Lists.newArrayList();
     }
 
@@ -69,7 +69,7 @@ public class AudioFeaturesTrainer implements IRecordProcessor {
 
             listOfProcessed.add(classifier.getProcessedFeatures());
             Double[] aggregateValues = classifier.getAlgorithm().computeAggregate(listOfProcessed);
-          LOGGER.debug("Aggregate Values: {}", java.util.Arrays.deepToString(aggregateValues));
+          LOGGER.debug("Aggregate Values: {}", Arrays.deepToString(aggregateValues));
           //LOGGER.debug("Classification: {}", classification.name);
 
         }

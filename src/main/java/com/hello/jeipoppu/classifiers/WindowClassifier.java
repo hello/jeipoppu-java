@@ -9,10 +9,6 @@ import com.hello.jeipoppu.models.Classification;
 import com.hello.suripu.api.audio.MatrixProtos.Matrix;
 import com.hello.suripu.api.audio.MatrixProtos.MatrixClientMessage;
 
-import java.io.BufferedReader;
-import java.io.FileNotFoundException;
-import java.io.FileReader;
-import java.io.IOException;
 import java.util.Collections;
 import java.util.Comparator;
 import java.util.LinkedHashMap;
@@ -28,13 +24,13 @@ public class WindowClassifier implements Classifier {
   private Algorithm algorithm;
   public List<Double[]> featureVectors;
   public Double[] processedFeatures;
-  private Map<String, List<Double>> models;
+  private Map<String, Double[]> models;
   public List<Double[]> processedWindows;
   private Integer windowSize;
 
   public WindowClassifier(final Algorithm algorithm, final Integer windowSize) {
     this.algorithm = algorithm;
-    models = loadModels();
+    models = algorithm.getModels();
     processedWindows = Lists.newArrayList();
     this.windowSize = windowSize;
   }
@@ -81,12 +77,14 @@ public class WindowClassifier implements Classifier {
     return processedFeatures;
   }
 
+  public Integer getFeatureCount() { return featureVectors.size(); }
+
   public Classification determineClassification(final Double[] features) {
     //Compare vector to models to determine classification
     Double lowestDistance = 3000.0;
     String nearestModel = "";
     Map<String, Double> modelDistances = Maps.newHashMap();
-    for (Map.Entry<String, List<Double>> model : models.entrySet()) {
+    for (Map.Entry<String, Double[]> model : models.entrySet()) {
       final String modelName = model.getKey();
       final Double distance = getDistance(features, model.getValue());
       modelDistances.put(modelName, distance);
@@ -97,6 +95,8 @@ public class WindowClassifier implements Classifier {
       //LOGGER.debug("Model: {} ; Distance: {}", modelName, distance);
     }
     modelDistances = sortByValue(modelDistances);
+//    System.out.println(modelDistances.toString());
+//    System.out.println(lowestDistance);
     //LOGGER.debug("Sorted Models: {}", modelDistances.toString());
     //LOGGER.debug("Matrix processed for: {} with {} : {}", message.getDeviceId(), message.getUnixTime(), featureVectors.size());
     //LOGGER.debug("Processed featureVectors: {} via {}", processedFeatures, algorithm.getClass().getName());
@@ -105,11 +105,13 @@ public class WindowClassifier implements Classifier {
     String secondModel = modelDistances.keySet().toArray()[1].toString();
 
     Double modelDiff = Math.abs(modelDistances.get(selectedModel) - modelDistances.get(secondModel));
-    if (modelDiff < 0.2 && (selectedModel.contains("Snor") && secondModel.contains("Snor"))) {
-      //LOGGER.debug("{} MAYBE {}", selectedModel, secondModel);
+//    if (modelDiff < 0.2 && !(selectedModel.contains("Snor") && secondModel.contains("Snor"))) {
+//      //LOGGER.debug("{} MAYBE {}", selectedModel, secondModel);
+//      return new Classification("Uncertain", 0.0f);
+//    }
+
+    if (lowestDistance > 3.5f) {
       return new Classification("Uncertain", 0.0f);
-    } else {
-      //LOGGER.debug("{} FAIRLY CERTAIN", selectedModel);
     }
 
     if(selectedModel.contains("Snor")){
@@ -119,7 +121,7 @@ public class WindowClassifier implements Classifier {
     return new Classification(selectedModel, modelDistances.get(selectedModel));
   }
 
-  public static <K, V extends Comparable<? super V>> Map<K, V>
+  public static <K, V extends Comparable<? super V>> LinkedHashMap<K, V>
   sortByValue( Map<K, V> map )
   {
     List<Map.Entry<K, V>> list =
@@ -133,7 +135,7 @@ public class WindowClassifier implements Classifier {
       }
     } );
 
-    Map<K, V> result = new LinkedHashMap<>();
+    LinkedHashMap<K, V> result = new LinkedHashMap<>();
     for (Map.Entry<K, V> entry : list)
     {
       result.put( entry.getKey(), entry.getValue() );
@@ -145,11 +147,11 @@ public class WindowClassifier implements Classifier {
     return algorithm;
   }
 
-  private double getDistance(final Double[] processedFeatures, final List<Double> modelFeatures) {
+  private double getDistance(final Double[] processedFeatures, final Double[] modelFeatures) {
     //int[] distanceVector = new int[processedFeatures.length];
     double distance = 0;
     for (int x=0; x<processedFeatures.length; x++) {
-      distance += Math.pow((modelFeatures.get(x) - processedFeatures[x]), 2.0);
+      distance += Math.pow((modelFeatures[x] - processedFeatures[x]), 2.0);
     }
     return Math.sqrt(distance);
   }
@@ -204,47 +206,5 @@ public class WindowClassifier implements Classifier {
     }
     return featureMatrix;
 
-  }
-
-  //TODO: abtract this method out to handle model loading from other sources
-  public Map<String, List<Double>> loadModels() {
-
-    BufferedReader br = null;
-    Map<String, List<Double>> returnModels = Maps.newHashMap();
-
-    try {
-
-      String line;
-      String MODEL_FILENAME = "/Users/jnorgan/HelloCode/scripts/data/audio_features/" + algorithm.getModelName();
-
-      br = new BufferedReader(new FileReader(MODEL_FILENAME));
-      while ((line = br.readLine()) != null) {
-        List<Double> returnFeatures = Lists.newArrayList();
-        //final String line = br.readLine();
-        String[] parts = line.split(":");
-        String[] featureStrings = parts[1].split(",");
-
-        for (final String feature : featureStrings) {
-          returnFeatures.add(Double.parseDouble(feature.trim()));
-        }
-        returnModels.put(parts[0], returnFeatures);
-      }
-
-
-    } catch (FileNotFoundException e) {
-      e.printStackTrace();
-    } catch (IOException e) {
-      e.printStackTrace();
-    } finally {
-      if (br != null) {
-        try {
-          br.close();
-        } catch (IOException e) {
-          e.printStackTrace();
-        }
-      }
-    }
-
-    return returnModels;
   }
 }

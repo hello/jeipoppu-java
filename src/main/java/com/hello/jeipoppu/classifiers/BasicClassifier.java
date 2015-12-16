@@ -9,10 +9,6 @@ import com.hello.jeipoppu.models.Classification;
 import com.hello.suripu.api.audio.MatrixProtos.Matrix;
 import com.hello.suripu.api.audio.MatrixProtos.MatrixClientMessage;
 
-import java.io.BufferedReader;
-import java.io.FileNotFoundException;
-import java.io.FileReader;
-import java.io.IOException;
 import java.util.Collections;
 import java.util.Comparator;
 import java.util.LinkedHashMap;
@@ -23,7 +19,6 @@ import java.util.Map;
 public class BasicClassifier implements Classifier {
 
   private final static org.slf4j.Logger LOGGER = org.slf4j.LoggerFactory.getLogger(BasicClassifier.class);
-  private final static String MODEL_FILENAME = "/Users/jnorgan/HelloCode/scripts/data/audio_features/model_stddev.csv";
 
   private MatrixClientMessage message;
   private Algorithm algorithm;
@@ -54,13 +49,13 @@ public class BasicClassifier implements Classifier {
     processedFeatures = algorithm.compute(features);
 
     //Load models
-    final Map<String, List<Double>> models = loadModels();
+    final Map<String, Double[]> models = algorithm.getModels();
 
     //Compare vector to models to determine classification
     Double lowestDistance = 3000.0;
     String nearestModel = "";
     Map<String, Double> modelDistances = Maps.newHashMap();
-    for (Map.Entry<String, List<Double>> model : models.entrySet()) {
+    for (Map.Entry<String, Double[]> model : models.entrySet()) {
       final String modelName = model.getKey();
       final Double distance = getDistance(processedFeatures, model.getValue());
       modelDistances.put(modelName, distance);
@@ -94,6 +89,8 @@ public class BasicClassifier implements Classifier {
     return processedFeatures;
   }
 
+  public Integer getFeatureCount() { return features.size(); }
+
   public static <K, V extends Comparable<? super V>> Map<K, V>
   sortByValue( Map<K, V> map )
   {
@@ -120,11 +117,11 @@ public class BasicClassifier implements Classifier {
     return algorithm;
   }
 
-  private double getDistance(final Double[] processedFeatures, final List<Double> modelFeatures) {
+  private double getDistance(final Double[] processedFeatures, final Double[] modelFeatures) {
     //int[] distanceVector = new int[processedFeatures.length];
     double distance = 0;
     for (int x=0; x<processedFeatures.length; x++) {
-      distance += Math.pow((modelFeatures.get(x) - processedFeatures[x]), 2.0);
+      distance += Math.pow((modelFeatures[x] - processedFeatures[x]), 2.0);
     }
     return Math.sqrt(distance);
   }
@@ -179,47 +176,5 @@ public class BasicClassifier implements Classifier {
     }
     return featureMatrix;
 
-  }
-
-  //TODO: abtract this method out to handle model loading from other sources
-  public Map<String, List<Double>> loadModels() {
-
-    BufferedReader br = null;
-    Map<String, List<Double>> returnModels = Maps.newHashMap();
-
-    try {
-
-      String line;
-      String MODEL_FILENAME = "/Users/jnorgan/HelloCode/scripts/data/audio_features/" + algorithm.getModelName();
-
-      br = new BufferedReader(new FileReader(MODEL_FILENAME));
-      while ((line = br.readLine()) != null) {
-        List<Double> returnFeatures = Lists.newArrayList();
-        //final String line = br.readLine();
-        String[] parts = line.split(":");
-        String[] featureStrings = parts[1].split(",");
-
-        for (final String feature : featureStrings) {
-          returnFeatures.add(Double.parseDouble(feature.trim()));
-        }
-        returnModels.put(parts[0], returnFeatures);
-      }
-
-
-    } catch (FileNotFoundException e) {
-      e.printStackTrace();
-    } catch (IOException e) {
-      e.printStackTrace();
-    } finally {
-      if (br != null) {
-        try {
-          br.close();
-        } catch (IOException e) {
-          e.printStackTrace();
-        }
-      }
-    }
-
-    return returnModels;
   }
 }
