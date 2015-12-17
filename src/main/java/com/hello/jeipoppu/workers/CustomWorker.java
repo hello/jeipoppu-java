@@ -56,90 +56,84 @@ public class CustomWorker implements Runnable {
         while (!shutdown) {
           //Pull records
           // fetch serialized list of Records from disk
-//          List<String> featureSets = Lists.newArrayList(
-//              "features_office_a_1290",
-//              "features_office_a_1291",
-//              "features_office_a_1292",
-//              "features_office_a_1293"
-//          );
-          //Speech
-//          List<String> featureSets = Lists.newArrayList(
-//              "features_counting_a_1296",
-//              "features_counting_a_1298",
-//              "features_counting_a_1299"
-//          );
+          List<String> featureSets = Lists.newArrayList();
 
-          //Only Snores
-//          List<String> featureSets = Lists.newArrayList(
-//              "features_onlysnoring_1249",
-//              "features_onlysnoring_1250",
-//              "features_onlysnoring_1251",
-//              "features_onlysnoring_1252",
-//              "features_onlysnoring_1253"
-//          );
-
-          //Snore C
-//          List<String> featureSets = Lists.newArrayList(
-//              "features_snoring_c_1351",
-//              "features_snoring_c_1352",
-//              "features_snoring_c_1353",
-//              "features_snoring_c_1354",
-//              "features_snoring_c_1355",
-//              "features_snoring_c_1356"
-//          );
-
-
-          //Music (Bing Crosby - White Christmas)
-//          List<String> featureSets = Lists.newArrayList(
-//              "features_music_a_1397",
-//              "features_music_a_1398",
-//              "features_music_a_1399"
-//          );
-          //Noise (white)
-//          List<String> featureSets = Lists.newArrayList(
-//              "features_noise_1408",
-//              "features_noise_1409"
-//          );
+//          //Office Noise
+//          featureSets.add("features_office_a_1290");
+//          featureSets.add("features_office_a_1291");
+//          featureSets.add("features_office_a_1292");
+//          featureSets.add("features_office_a_1293");
+//
+//          //Speech
+//          featureSets.add("features_counting_a_1296");
+//          featureSets.add("features_counting_a_1298");
+//          featureSets.add("features_counting_a_1299");
+//
+//          //Only Snores
+//          featureSets.add("features_onlysnoring_1249");
+//          featureSets.add("features_onlysnoring_1250");
+//          featureSets.add("features_onlysnoring_1251");
+//          featureSets.add("features_onlysnoring_1252");
+//          featureSets.add("features_onlysnoring_1253");
+//
+//          //Snore C
+//          featureSets.add("features_snoring_c_1351");
+//          featureSets.add("features_snoring_c_1352");
+//          featureSets.add("features_snoring_c_1353");
+//          featureSets.add("features_snoring_c_1354");
+//          featureSets.add("features_snoring_c_1355");
+//          featureSets.add("features_snoring_c_1356");
+//
+//          //Music (Bing Crosby - White Christmas)
+//          featureSets.add("features_music_a_1397");
+//          featureSets.add("features_music_a_1398");
+//          featureSets.add("features_music_a_1399");
+//
+//          //Noise (white)
+//          featureSets.add("features_noise_1408");
+//          featureSets.add("features_noise_1409");
 
           //Test (Snore, Noise, quiet snore, speech)
-          List<String> featureSets = Lists.newArrayList(
-              "features_test_306",
-              "features_test_307",
-              "features_test_308"
-          );
+          featureSets.add("features_test_306");
+          featureSets.add("features_test_307");
+          featureSets.add("features_test_308");
 
-
-//          List<String> featureSets = Lists.newArrayList(
-//              "features_snoring_a_1256",
-//              "features_snoring_a_1257",
-//              "features_snoring_a_1258",
-//              "features_snoring_a_1259",
-//              "features_snoring_a_1260",
-//              "features_snoring_a_1261",
-//              "features_snoring_a_1262",
-//              "features_snoring_a_1263",
-//              "features_snoring_b_1265",
-//              "features_snoring_b_1266",
-//              "features_snoring_b_1267",
-//              "features_snoring_b_1268",
-//              "features_snoring_b_1269",
-//              "features_snoring_b_1270",
-//              "features_snoring_b_1271",
-//              "features_snoring_b_1272",
-//              "features_snoring_b_1273"
-//              );
+//          //Snoring A
+//          featureSets.add("features_snoring_a_1256");
+//          featureSets.add("features_snoring_a_1257");
+//          featureSets.add("features_snoring_a_1258");
+//          featureSets.add("features_snoring_a_1259");
+//          featureSets.add("features_snoring_a_1260");
+//          featureSets.add("features_snoring_a_1261");
+//          featureSets.add("features_snoring_a_1262");
+//          featureSets.add("features_snoring_a_1263");
+//
+//          //Snoring B
+//          featureSets.add("features_snoring_b_1265");
+//          featureSets.add("features_snoring_b_1266");
+//          featureSets.add("features_snoring_b_1267");
+//          featureSets.add("features_snoring_b_1268");
+//          featureSets.add("features_snoring_b_1269");
+//          featureSets.add("features_snoring_b_1270");
+//          featureSets.add("features_snoring_b_1271");
+//          featureSets.add("features_snoring_b_1272");
+//          featureSets.add("features_snoring_b_1273");
 
           for (final String featureSet : featureSets) {
             LOG.debug(featureSet);
 
-            final String fileName = "/Users/jnorgan/HelloCode/scripts/data/audio_features/" + featureSet;
+            final String fileName = "/Users/jnorgan/HelloCode/scripts/data/audio_features/" + featureSet + "_pb";
 
             List<Record> records = Lists.newArrayList();
             List<MatrixClientMessage> clientMsgs = Lists.newArrayList();
             try {
               FileInputStream fileIn = new FileInputStream(fileName);
               ObjectInputStream in = new ObjectInputStream(fileIn);
-              clientMsgs = (List<MatrixClientMessage>) in.readObject();
+              MatrixClientMessage msg;
+              while ((msg = MatrixClientMessage.parseDelimitedFrom(in)) != null) {
+                clientMsgs.add(msg);
+              }
+              //clientMsgs = (List<MatrixClientMessage>) in.readObject();
 
               //System.out.println("Deserialized Data: \n" + clientMsg.toString());
               in.close();
@@ -156,7 +150,7 @@ public class CustomWorker implements Runnable {
 
             if (shouldWriteRecords) {
               try {
-                java.io.FileOutputStream fileOut = new java.io.FileOutputStream(fileName);
+                java.io.FileOutputStream fileOut = new java.io.FileOutputStream(fileName + "_pb");
                 ObjectOutputStream out = new ObjectOutputStream(fileOut);
                 //out.writeDelimitedTo(nonEmptyRecords);
                 for (final MatrixClientMessage msg : clientMsgs) {
