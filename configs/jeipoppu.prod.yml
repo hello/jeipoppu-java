@@ -16,10 +16,10 @@ graphite:
     - com.hello
 
 logging: 
-  level: INFO
+  level: ERROR
   loggers: 
-    com.hello.jeipoppu: DEBUG
+    com.hello.jeipoppu: ERROR
 
 max_records: 50
 
-metrics_enabled: true
+metrics_enabled: false

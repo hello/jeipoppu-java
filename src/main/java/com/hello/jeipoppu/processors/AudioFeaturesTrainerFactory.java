@@ -5,15 +5,17 @@ import com.amazonaws.services.kinesis.clientlibrary.interfaces.IRecordProcessorF
 import com.codahale.metrics.MetricRegistry;
 
 
-public class AudioFeaturesProcessorFactory implements IRecordProcessorFactory {
+public class AudioFeaturesTrainerFactory implements IRecordProcessorFactory {
 
+    private final String streamName;
     private final MetricRegistry metricRegistry;
 
-    public AudioFeaturesProcessorFactory(final String streamName, final MetricRegistry metricRegistry) {
+    public AudioFeaturesTrainerFactory(final String streamName, final MetricRegistry metricRegistry) {
+        this.streamName = streamName;
         this.metricRegistry = metricRegistry;
     }
 
     public IRecordProcessor createProcessor() {
-        return new AudioFeaturesProcessor(metricRegistry);
+        return new AudioFeaturesTrainer(metricRegistry);
     }
 }

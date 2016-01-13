@@ -1,4 +1,4 @@
-package com.hello.jeipoppu.processors;
+package com.hello.jeipoppu.commands;
 
 import com.amazonaws.ClientConfiguration;
 import com.amazonaws.auth.AWSCredentialsProvider;
@@ -12,15 +12,19 @@ import com.codahale.metrics.graphite.Graphite;
 import com.codahale.metrics.graphite.GraphiteReporter;
 import com.hello.jeipoppu.configuration.JeiPoppuConfiguration;
 import com.hello.jeipoppu.framework.AudioFeaturesEnvironmentCommand;
+import com.hello.jeipoppu.processors.AudioFeaturesProcessorFactory;
+import com.hello.jeipoppu.workers.CustomWorker;
 
-import io.dropwizard.setup.Environment;
 import net.sourceforge.argparse4j.inf.Namespace;
+
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import java.net.InetAddress;
 import java.net.InetSocketAddress;
 import java.util.concurrent.TimeUnit;
+
+import io.dropwizard.setup.Environment;
 
 /**
  * Created by jnorgan on 6/29/15.
@@ -81,5 +85,7 @@ public class AudioFeaturesCommand extends AudioFeaturesEnvironmentCommand<JeiPop
 
         final Worker kinesisWorker = new Worker(processorFactory, kinesisConfig);
         kinesisWorker.run();
+        final CustomWorker fileWorker = new CustomWorker(processorFactory, kinesisConfig);
+        //fileWorker.run();
     }
 }
