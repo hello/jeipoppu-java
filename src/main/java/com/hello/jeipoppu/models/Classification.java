@@ -1,18 +1,20 @@
 package com.hello.jeipoppu.models;
 
 
+import com.hello.suripu.api.audio.AudioClassificationProtos;
+
 public class Classification {
 
-  public String name;
+  public AudioClassificationProtos.audio_class_result.audio_class type;
   private double confidence;
 
-  public Classification(final String classificationName, final double confidence) {
-    this.name = classificationName;
+  public Classification(final AudioClassificationProtos.audio_class_result.audio_class classificationType, final double confidence) {
+    this.type = classificationType;
     this.confidence = confidence;
   }
 
   public String toString() {
-    return name;
+    return type.toString();
   }
 
   public double getConfidence() {

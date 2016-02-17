@@ -6,6 +6,7 @@ import com.google.common.collect.Maps;
 
 import com.hello.jeipoppu.algorithms.Algorithm;
 import com.hello.jeipoppu.models.Classification;
+import com.hello.suripu.api.audio.AudioClassificationProtos.audio_class_result.audio_class;
 import com.hello.suripu.api.audio.MatrixProtos.Matrix;
 import com.hello.suripu.api.audio.MatrixProtos.MatrixClientMessage;
 
@@ -53,10 +54,16 @@ public class WindowClassifier implements Classifier {
       return Collections.EMPTY_LIST;
     }
 
+    Integer adaptiveWindowSize = windowSize;
+
+    if (featureVectors.size() <= windowSize) {
+      adaptiveWindowSize = featureVectors.size() / 2;
+    }
+
     List<Classification> classifications = Lists.newArrayList();
-    for (int x=0; x < featureVectors.size() - (windowSize - 1); x++) {
+    for (int x=0; x < featureVectors.size() - (adaptiveWindowSize - 1); x++) {
       List<Double[]> windowVectors = Lists.newArrayList();
-      for(int y =0; y < windowSize; y++) {
+      for(int y =0; y < adaptiveWindowSize; y++) {
         windowVectors.add(featureVectors.get(x + y));
       }
       final Double[] processedWindow = algorithm.compute(windowVectors);
@@ -111,14 +118,20 @@ public class WindowClassifier implements Classifier {
 //    }
 
     if (lowestDistance > 3.5f) {
-      return new Classification("Uncertain", 0.0f);
+      return new Classification(audio_class.UNKNOWN, 0.0f);
     }
 
-    if(selectedModel.contains("Snor")){
-      return new Classification("Snoring", modelDistances.get(selectedModel));
+    if(selectedModel.startsWith("Snoring")){
+      return new Classification(audio_class.SNORING, modelDistances.get(selectedModel));
+    }
+    if(selectedModel.startsWith("Speech")){
+      return new Classification(audio_class.TALKING, modelDistances.get(selectedModel));
+    }
+    if(selectedModel.startsWith("Noise")){
+      return new Classification(audio_class.UNKNOWN, modelDistances.get(selectedModel));
     }
 
-    return new Classification(selectedModel, modelDistances.get(selectedModel));
+    return new Classification(audio_class.NULL, modelDistances.get(selectedModel));
   }
 
   public static <K, V extends Comparable<? super V>> LinkedHashMap<K, V>

@@ -69,7 +69,7 @@ public class CustomWorker implements Runnable {
 //          featureSets.add("features_counting_a_1298");
 //          featureSets.add("features_counting_a_1299");
 //
-//          //Only Snores
+          //Only Snores
 //          featureSets.add("features_onlysnoring_1249");
 //          featureSets.add("features_onlysnoring_1250");
 //          featureSets.add("features_onlysnoring_1251");
@@ -92,12 +92,24 @@ public class CustomWorker implements Runnable {
 //          //Noise (white)
 //          featureSets.add("features_noise_1408");
 //          featureSets.add("features_noise_1409");
-
-          //Test (Snore, Noise, quiet snore, speech)
-          featureSets.add("features_test_306");
-          featureSets.add("features_test_307");
-          featureSets.add("features_test_308");
-
+//
+//          //Test (Snore, Noise, quiet snore, speech)
+//          featureSets.add("features_test_306");
+//          featureSets.add("features_test_307");
+//          featureSets.add("features_test_308");
+//
+          //Test2 (Snore, Noise, quiet snore, speech, Snore)
+          featureSets.add("features_test2_406");
+          featureSets.add("features_test2_407");
+          featureSets.add("features_test2_408");
+          featureSets.add("features_test2_409");
+//
+//          //Snoring D (higher sensitivity FW)
+//          featureSets.add("features_snoring_d_418");
+//          featureSets.add("features_snoring_d_419");
+//          featureSets.add("features_snoring_d_420");
+//          featureSets.add("features_snoring_d_421");
+//
 //          //Snoring A
 //          featureSets.add("features_snoring_a_1256");
 //          featureSets.add("features_snoring_a_1257");
@@ -120,7 +132,8 @@ public class CustomWorker implements Runnable {
 //          featureSets.add("features_snoring_b_1273");
 
           for (final String featureSet : featureSets) {
-            LOG.debug(featureSet);
+            //LOG.debug(featureSet);
+            System.out.println(featureSet);
 
             final String fileName = "/Users/jnorgan/HelloCode/scripts/data/audio_features/" + featureSet + "_pb";
 
