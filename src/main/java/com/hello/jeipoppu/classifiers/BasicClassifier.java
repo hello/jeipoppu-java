@@ -6,6 +6,8 @@ import com.google.common.collect.Maps;
 
 import com.hello.jeipoppu.algorithms.Algorithm;
 import com.hello.jeipoppu.models.Classification;
+import com.hello.suripu.api.audio.AudioClassificationProtos;
+import com.hello.suripu.api.audio.AudioClassificationProtos.audio_class_result.audio_class;
 import com.hello.suripu.api.audio.MatrixProtos.Matrix;
 import com.hello.suripu.api.audio.MatrixProtos.MatrixClientMessage;
 
@@ -81,7 +83,18 @@ public class BasicClassifier implements Classifier {
       LOGGER.debug("{} FAIRLY CERTAIN", selectedModel);
     }
 
-    final Classification classification = new Classification(selectedModel, modelDistances.get(selectedModel));
+    audio_class selectedClass = audio_class.NULL;
+    if(selectedModel.startsWith("Snoring")){
+      selectedClass = audio_class.SNORING;
+    }
+    if(selectedModel.startsWith("Speech")){
+      selectedClass = audio_class.TALKING;
+    }
+    if(selectedModel.startsWith("Noise")){
+      selectedClass = audio_class.UNKNOWN;
+    }
+
+    final Classification classification = new Classification(selectedClass, modelDistances.get(selectedModel));
     return Lists.newArrayList(classification);
   }
 

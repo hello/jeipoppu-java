@@ -37,7 +37,7 @@ public class AudioFeaturesTrainer implements IRecordProcessor {
 
 
     public AudioFeaturesTrainer(final MetricRegistry metricRegistry){
-      classifier = new WindowClassifier(new StdDevAlgorithm(), 32);
+      classifier = new WindowClassifier(new StdDevAlgorithm(), 3);
       listOfProcessed = Lists.newArrayList();
     }
 

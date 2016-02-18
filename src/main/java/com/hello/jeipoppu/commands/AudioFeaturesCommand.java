@@ -3,6 +3,7 @@ package com.hello.jeipoppu.commands;
 import com.amazonaws.ClientConfiguration;
 import com.amazonaws.auth.AWSCredentialsProvider;
 import com.amazonaws.auth.DefaultAWSCredentialsProviderChain;
+import com.amazonaws.services.kinesis.AmazonKinesisAsyncClient;
 import com.amazonaws.services.kinesis.clientlibrary.interfaces.IRecordProcessorFactory;
 import com.amazonaws.services.kinesis.clientlibrary.lib.worker.InitialPositionInStream;
 import com.amazonaws.services.kinesis.clientlibrary.lib.worker.KinesisClientLibConfiguration;
@@ -14,6 +15,8 @@ import com.hello.jeipoppu.configuration.JeiPoppuConfiguration;
 import com.hello.jeipoppu.framework.AudioFeaturesEnvironmentCommand;
 import com.hello.jeipoppu.processors.AudioFeaturesProcessorFactory;
 import com.hello.jeipoppu.workers.CustomWorker;
+import com.hello.suripu.core.logging.DataLogger;
+import com.hello.suripu.core.logging.KinesisLogger;
 
 import net.sourceforge.argparse4j.inf.Namespace;
 
@@ -32,6 +35,7 @@ import io.dropwizard.setup.Environment;
 public class AudioFeaturesCommand extends AudioFeaturesEnvironmentCommand<JeiPoppuConfiguration> {
     private final static String COMMAND_APP_NAME = "audio_features_processor";
     private final static String COMMAND_STREAM_NAME = "audio_features";
+    private final static String PRODUCTS_STREAM_NAME = "audio_products";
     private final static Logger LOGGER = LoggerFactory.getLogger(AudioFeaturesCommand.class);
     private final static ClientConfiguration DEFAULT_CLIENT_CONFIGURATION = new ClientConfiguration().withConnectionTimeout(200).withMaxErrorRetry(1);
 
@@ -78,8 +82,15 @@ public class AudioFeaturesCommand extends AudioFeaturesEnvironmentCommand<JeiPop
         kinesisConfig.withKinesisEndpoint(configuration.getKinesisEndpoints().get(COMMAND_STREAM_NAME));
 //        kinesisConfig.withIdleTimeBetweenReadsInMillis(10000);
 
+        final ClientConfiguration kinesisClientConfiguration = new ClientConfiguration().withMaxConnections(100);
+        final AmazonKinesisAsyncClient kinesisClient = new AmazonKinesisAsyncClient(awsCredentialsProvider, kinesisClientConfiguration);
+        kinesisClient.setEndpoint(configuration.getKinesisEndpoints().get(PRODUCTS_STREAM_NAME));
+
+        final DataLogger audioProductsLogger = new KinesisLogger(kinesisClient, PRODUCTS_STREAM_NAME);
+
         final IRecordProcessorFactory processorFactory = new AudioFeaturesProcessorFactory(
                 configuration.getKinesisStreams().get(COMMAND_STREAM_NAME),
+                audioProductsLogger,
                 environment.metrics()
         );
 
