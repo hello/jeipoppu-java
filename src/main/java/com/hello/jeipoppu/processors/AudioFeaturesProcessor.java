@@ -16,6 +16,7 @@ import com.hello.jeipoppu.algorithms.StdDevAlgorithm;
 import com.hello.jeipoppu.classifiers.BasicClassifier;
 import com.hello.jeipoppu.classifiers.WindowClassifier;
 import com.hello.jeipoppu.models.Classification;
+import com.hello.suripu.api.audio.AudioClassificationProtos;
 import com.hello.suripu.api.audio.AudioClassificationProtos.audio_class_result;
 import com.hello.suripu.api.audio.AudioClassificationProtos.audio_class_result.audio_class;
 import com.hello.suripu.api.audio.AudioClassificationProtos.audio_classifcation_message;
@@ -135,14 +136,16 @@ public class AudioFeaturesProcessor implements IRecordProcessor {
           //Basically, what percentage of the total feature vectors for this upload where classified as the winner
           final Float winnerPercentage = (float)winningValue / (float)featureCount;
 
-          //System.out.println(classCounts.toString());
-
           LOGGER.debug("{}, {}, {}, {}, {}, {}", deviceId, formattedDate, winningClassification, winningValue, featureCount.toString(), winnerPercentage);
 
-          final audio_class_result classResult = audio_class_result.newBuilder()
-              .addClasses(winningClassification)
-              .addProbability(winnerPercentage)
-              .build();
+          final AudioClassificationProtos.audio_class_result.Builder classResultBuilder = audio_class_result.newBuilder();
+          for (Map.Entry<audio_class, Integer> entry : classCounts.entrySet()) {
+            classResultBuilder.addClasses(entry.getKey());
+            classResultBuilder.addProbability((float)entry.getValue() / (float)featureCount);
+          }
+          classResultBuilder.setDecision(winningClassification);
+          final audio_class_result classResult = classResultBuilder.build();
+
           final audio_classifcation_message classificationMsg = audio_classifcation_message.newBuilder()
               .setDeviceId(deviceId)
               .setUnixTime((int)unixSeconds)
