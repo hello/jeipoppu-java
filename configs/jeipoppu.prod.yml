@@ -5,8 +5,10 @@ debug: false
 kinesis:
   endpoints:
     audio_features: https://kinesis.us-east-1.amazonaws.com
+    audio_products: https://kinesis.us-east-1.amazonaws.com
   streams:
     audio_features: audio_features
+    audio_products: audio_products
 
 graphite:
   host: carbon.hostedgraphite.com
